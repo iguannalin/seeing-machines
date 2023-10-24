@@ -1,7 +1,10 @@
 #pragma once
 
 #include "ofMain.h"
+
 #include "ofxKinect.h"
+#include "ofxOpenCv.h"
+#include "yolo5ImageClassify.h"
 #include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
@@ -46,4 +49,9 @@ class ofApp : public ofBaseApp{
     ofSoundPlayer beep;
     ofSoundPlayer click;
     ofTrueTypeFont font;
+    
+    
+    yolo5ImageClassify classify;
+
+    vector <yolo5ImageClassify::Result> results;
 };

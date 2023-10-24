@@ -3,20 +3,20 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    
+    classify.setup("yolov5n.onnx", "classes.txt", false);
     // set up our kinect sensor
     kinect.setRegistration(true);
     kinect.init();
     kinect.open();
     
-    b_drawPointCloud = false;
+    b_drawPointCloud = true;
     b_drawGui = true;
     b_saving = false;
     
     // set up our GUI
     gui.setup("panel");
-    gui.add(nearClip.set("nearClip", 0, 0, 2000));
-    gui.add(farClip.set("farClip", 800, 500, 8000));
+    gui.add(nearClip.set("nearClip", 100, 100, 2000));
+    gui.add(farClip.set("farClip", 8000, 500, 8000));
 
 //    // load sounds and true type font
 //    beep.load("Beep_Short.mp3");
@@ -56,6 +56,7 @@ void ofApp::draw(){
         cam.begin();
         drawPointCloud();
         cam.end();
+        ofDrawBitmapString("🍌", 200, 500);
     } else {
         // draw debug images to screen
         kinect.draw(0, 0, kinect.width/2, kinect.height/2);
@@ -153,45 +154,44 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //--------------------------------------------------------------
 void ofApp::drawPointCloud(){
     
-    ofMesh pointCloud;
-    for (int x = 0; x < kinect.width; x++) {
-        for (int y = 0; y < kinect.height; y ++){
-            pointCloud.addVertex(kinect.getWorldCoordinateAt(x, y));
-        }
-    }
-    ofPushMatrix();
-    ofScale(1,-1,-1);
-    ofTranslate(0,0,-1000);
-    pointCloud.drawVertices();
-    ofPopMatrix();
-        
+//    ofMesh pointCloud;
+//    for (int x = 0; x < kinect.width; x++) {
+//        for (int y = 0; y < kinect.height; y ++){
+//            pointCloud.addVertex(kinect.getWorldCoordinateAt(x, y));
+//        }
+//    }
+//    ofPushMatrix();
+//    ofScale(1,-1,-1);
+//    ofTranslate(0,0,-1000);
+//    pointCloud.drawVertices();
+//    ofPopMatrix();
+//
     pointCloud.clear();
     pointCloud.setMode(OF_PRIMITIVE_POINTS);
-    
+
     pointIndex.clear();
     
 //     generate points in a mesh object for our point cloud
-//    for (int y = 0; y < kinect.height; y ++){
-//        for (int x = 0; x < kinect.width; x++) {
-//            ofVec3f point;
-//            point = kinect.getWorldCoordinateAt(x, y);
-//            // if (point.z > nearClip && point.z < farClip){
-//                pointCloud.addVertex(point);
+    for (int y = 0; y < kinect.height; y ++){
+        for (int x = 0; x < kinect.width; x++) {
+            ofVec3f point;
+            point = kinect.getWorldCoordinateAt(x, y);
+             if (point.z > nearClip && point.z < farClip){
+                pointCloud.addVertex(point);
 //                pointCloud.addColor(kinect.getColorAt(x, y));
-//                // ofColor col;
-//                // col.setHsb( ofMap(point.z, 100, 8000, 0, 255 ),  255,  255);
-//                // pointCloud.addColor(col);
-//            // }
-//            if(point.z){
-//                pointIndex.push_back(1);
-//            } else {
-//                pointIndex.push_back(0);
-//               // ofVec3f point;
-//                //pointCloud.addVertex(point);
-//            }
-//        }
-//    }
-    
+                 ofColor col;
+                 col.setHsb( ofMap(point.z, 100, 8000, 0, 255 ), 217,  255);
+                 pointCloud.addColor(col);
+             }
+            if(point.z){
+                pointIndex.push_back(1);
+            } else {
+                pointIndex.push_back(0);
+               // ofVec3f point;
+                //pointCloud.addVertex(point);
+            }
+        }
+    }
     /*
      triangulate the mesh points for our left and right handed triangles
      each triangle needs three indices described
@@ -221,17 +221,17 @@ void ofApp::drawPointCloud(){
 //             }
 //        }
 //    }
-//
-//    glPointSize(3);
-//
-//    ofEnableDepthTest();
-//    ofPushMatrix();
-//    ofScale(1,-1,-1);
-//    ofTranslate(0,0, -1000);
-//    // pointCloud.drawVertices();
-//    // pointCloud.drawWireframe();
-//    pointCloud.draw();
-//    ofPopMatrix();
-//
-//    ofDisableDepthTest();
+
+    glPointSize(3);
+
+    ofEnableDepthTest();
+    ofPushMatrix();
+    ofScale(-1,-1,-1);
+    ofTranslate(0,0,0);
+    // pointCloud.drawVertices();
+    // pointCloud.drawWireframe();
+    pointCloud.draw();
+    ofPopMatrix();
+
+    ofDisableDepthTest();
 }
