@@ -4,6 +4,8 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     classify.setup("yolov5n.onnx", "classes.txt", false);
+    grabber.setup(640, 480);
+    
     // set up our kinect sensor
     kinect.setRegistration(true);
     kinect.init();
@@ -17,6 +19,7 @@ void ofApp::setup(){
     gui.setup("panel");
     gui.add(nearClip.set("nearClip", 100, 100, 2000));
     gui.add(farClip.set("farClip", 8000, 500, 8000));
+    numberPeople = 0;
 
 //    // load sounds and true type font
 //    beep.load("Beep_Short.mp3");
@@ -28,6 +31,23 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     int delay = 1000; // set the delay between count down steps
+    
+//    ofBackground(30, 30, 30);
+
+    grabber.update();
+    if( grabber.isFrameNew() ){
+            
+        //get the ofPixels and convert to an ofxCvColorImage
+        auto pixels = grabber.getPixels();
+        colorImg.setFromPixels(pixels);
+
+        //get the ofCvColorImage as a cv::Mat image to pass to the classifier
+        auto cvMat = cv::cvarrToMat(colorImg.getCvImage());
+        
+        //get the restuls as a vector of detected items.
+        //each result has an ofRectangle for the bounds, a label which identifies the object and the confidence of the classifier
+        results = classify.classifyFrame(cvMat);
+    }
     
     kinect.update(); // get fresh data from the kinect sensor
     
@@ -53,10 +73,19 @@ void ofApp::draw(){
     
     if (b_drawPointCloud){
         // draw our point cloud
-        cam.begin();
-        drawPointCloud();
-        cam.end();
-        ofDrawBitmapString("🍌", 200, 500);
+        
+        for(auto res: results){
+            auto rect = res.rect;
+//            ofDrawRectangle(rect);
+            if (res.label == "person") {
+                numberPeople ++;
+//                ofDrawBitmapStringHighlight(res.label, rect.getTopLeft());
+                cam.begin();
+                drawPointCloud();
+                cam.end();
+//                ofSetColor(255, 0, 255);
+            }
+        }
     } else {
         // draw debug images to screen
         kinect.draw(0, 0, kinect.width/2, kinect.height/2);
@@ -180,7 +209,7 @@ void ofApp::drawPointCloud(){
                 pointCloud.addVertex(point);
 //                pointCloud.addColor(kinect.getColorAt(x, y));
                  ofColor col;
-                 col.setHsb( ofMap(point.z, 100, 8000, 0, 255 ), 217,  255);
+                 col.setHsb( ofMap(point.z, 100, 8000, 0, 255 ), ofMap(numberPeople, 0, 10, 0, 255),  255);
                  pointCloud.addColor(col);
              }
             if(point.z){

@@ -51,6 +51,12 @@ class ofApp : public ofBaseApp{
     ofTrueTypeFont font;
     
     
+    
+    ofVideoGrabber grabber;
+    ofxCvColorImage    colorImg;
+    
+    int numberPeople;
+    
     yolo5ImageClassify classify;
 
     vector <yolo5ImageClassify::Result> results;
